@@ -132,11 +132,10 @@ project/
 
 ## 🔧 Technologies Used
 
-- **C / C++**
+- **C++**
 - **TCP/IP socket programming**
-- **select() for non-blocking I/O**
-- **UNIX/Linux environment**
-- **Custom logging and utility modules**
+- **Linux environment**
+
 
 ---
 
