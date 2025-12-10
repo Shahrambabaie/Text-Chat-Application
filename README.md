@@ -1,214 +1,143 @@
-# 🧠 NN & CNN: Neural Networks and Convolutional Neural Networks
+# 💬 Text Chat Application — Client–Server Messaging System
 
-This project presents a complete deep-learning workflow using **Fully Connected Neural Networks (NNs)** and **Convolutional Neural Networks (CNNs)**.  
-It walks through designing, training, optimizing, and evaluating neural architectures for both **tabular binary classification** and **image classification** tasks.
+This project implements a fully functional **client–server text chat system** built using TCP sockets and the `select()` system call.  
+It supports multi-client communication, message relaying through a central server, user-level blocking, message buffering, and server-side statistics tracking.
 
-The project is organized into **five parts**, aligned with an increasingly advanced progression:
-
-- **Part 1:** Build a Basic Neural Network (Binary Classification)  
-- **Part 2:** Hyperparameter Optimization & Training Improvements  
-- **Part 3:** Implement & Improve AlexNet for a Custom 3-Class Image Dataset  
-- **Part 4:** Apply Improved CNN to SVHN with Data Augmentation  
-- **Part 5:** Extended CNN Experiments & Additional Improvements  
+The application runs in two modes—**server mode** and **client mode**—with behavior determined by command-line arguments.  
+All components use low-level socket APIs to provide efficient, event-driven communication without multithreading.
 
 ---
 
-## 📊 Dataset Overview
+## 🚀 Features Overview
 
-This project uses **three datasets**, each requiring distinct preprocessing pipelines.
-
----
-
-### 🔹 Dataset 1 — Tabular Dataset (Parts 1 & 2)
-
-Used for binary classification using a fully connected neural network.
-
-**Structure:**
-- 7 input features  
-- 1 binary output label  
-- Mix of numerical and categorical variables  
-
-**Preprocessing steps:**
-- One-hot encoding  
-- Numerical feature standardization  
-- Train/validation split  
+### 🖥️ Server Capabilities
+- Accepts multiple client connections  
+- Tracks and manages logged-in clients  
+- Relays messages between clients  
+- Buffers messages for offline clients  
+- Maintains usage statistics:
+  - Number of messages sent  
+  - Number of messages received  
+  - Online/offline status  
+- Provides administrative commands:
+  - `IP`, `PORT`, `LIST`  
+  - `STATISTICS`  
+  - `BLOCKED <client-ip>`
 
 ---
 
-### 🔹 Dataset 2 — Custom 3-Class Image Dataset (Part 3)
-
-A dataset containing:
-
-- 🐶 Dogs  
-- 🚗 Cars  
-- 🍔 Food  
-
-**Properties:**
-- 30,000 total images  
-- 64×64 RGB format  
-- Balanced across classes  
-
-Used for training and improving an **AlexNet-based CNN**.
-
----
-
-### 🔹 Dataset 3 — SVHN (Part 4)
-
-The **Street View House Numbers (SVHN)** dataset contains:
-
-- 600,000+ real-world digit images  
-- 32×32 RGB format  
-- High variation in lighting and backgrounds  
-
-Used for evaluating model generalization under challenging conditions.
+### 👤 Client Capabilities
+- Connects to server for text-based communication  
+- Sends direct messages (`SEND`)  
+- Sends broadcast messages (`BROADCAST`)  
+- Maintains a local block list  
+- Receives server-delivered and buffered messages  
+- Supports the following commands:
+  - `IP`, `PORT`, `LIST`  
+  - `LOGIN <server-ip> <server-port>`  
+  - `REFRESH`  
+  - `SEND <client-ip> <msg>`  
+  - `BROADCAST <msg>`  
+  - `BLOCK <client-ip>` / `UNBLOCK <client-ip>`  
+  - `LOGOUT`  
+  - `EXIT`
 
 ---
 
-# 🧩 Part-by-Part Breakdown
+## 📡 Network Model
+
+- All communication uses **TCP sockets**.  
+- Input multiplexing is handled using **`select()`**, enabling simultaneous monitoring of keyboard input and socket events.  
+- The server acts as a **central relay** — clients do not communicate directly with each other.  
+- Each connected client is identified by its IP address and a server-assigned port.
 
 ---
 
-## 📘 Part 1 — Building a Basic Neural Network (NN)
+## 🧩 Command Behavior
 
-This section builds the foundational neural network for binary classification.
+### Common Commands (Server & Client)
 
-### ✔ Key steps:
-- Data loading & preprocessing  
-- Encoding categorical variables  
-- Feature standardization  
-- Define NN architecture (PyTorch or Keras)  
-- Implement:
-  - Forward pass  
-  - Binary Cross-Entropy loss  
-  - Backpropagation  
-  - Optimizer (SGD/Adam)  
-- Train/validation split  
-- Compute accuracy and loss  
-
-### 📈 Visualizations:
-- Feature distributions  
-- Correlation matrix  
-- Training vs validation curves  
-- Confusion matrix  
+| Command | Description |
+|--------|-------------|
+| `IP` | Displays the external IP address used for communication. |
+| `PORT` | Displays the port the application is running on. |
+| `LIST` | Shows the list of currently logged-in clients (sorted by port). |
 
 ---
 
-## 📘 Part 2 — Hyperparameter Optimization & Training Improvements
+## 🖥️ Server-Only Commands
 
-Improves NN performance through systematic hyperparameter tuning.
+### `STATISTICS`
+Displays, for each known client:
+- Hostname  
+- Number of messages sent  
+- Number of messages received  
+- Online/offline status  
 
-### ✔ Hyperparameters tested:
-- Dropout  
-- Optimizer choice  
-- Activation functions  
-- Weight initialization  
+Sorted by port.
 
-Each tested across **three configurations**.
-
-### ✔ Optimization techniques:
-- Early stopping  
-- Learning rate scheduling  
-- K-fold cross-validation  
-- Regularization (Dropout, L2 penalty)  
-
-### 📈 Outputs:
-- Accuracy and loss curves  
-- Performance comparison tables  
-- Summary of best-performing configuration  
+### `BLOCKED <client-ip>`
+Shows all clients that have been blocked **by** the specified client.
 
 ---
 
-## 📘 Part 3 — Implementing & Improving AlexNet (Custom 3-Class CNN)
+## 👤 Client-Only Commands
 
-This part brings in deep convolutional networks with AlexNet.
+### `LOGIN <server-ip> <server-port>`
+Registers the client with the server and retrieves:
+- Current list of logged-in clients  
+- Any buffered messages  
 
-### ✔ Steps:
-- Load & visualize dataset  
-- Preprocess images  
-- Implement AlexNet architecture tailored to 64×64 images  
-- Train, validate, and test the model  
-- Apply improvements:
-  - Dropout  
-  - Batch normalization  
-  - Learning rate schedules  
-  - Architecture refinements  
+### `REFRESH`
+Requests an updated list of connected clients.
 
-### 📈 Results include:
-- Accuracy vs. epoch curves  
-- Confusion matrix  
-- Sample predictions  
-- Visualization of model architecture  
+### `SEND <client-ip> <msg>`
+Sends a unicast message to a specific client.
 
----
+### `BROADCAST <msg>`
+Sends a message to all connected clients.
 
-## 📘 Part 4 — CNN + Data Augmentation on SVHN
+### `BLOCK <client-ip>` / `UNBLOCK <client-ip>`
+Updates the client's block list.
 
-Tests the improved CNN on a realistic digit dataset.
+### `LOGOUT`
+Disconnects the client from the server.
 
-### ✔ Techniques used:
-- Augmentation:
-  - Rotation  
-  - Translation  
-  - Horizontal flips  
-  - Zoom  
-  - Random cropping  
-- Fine-tuning  
-- Hyperparameter refinement  
-- Evaluation on test split  
-
-### 🎯 Target:
-Achieve **94%+ accuracy** on SVHN.
+### `EXIT`
+Closes the client program and removes all server-side state.
 
 ---
 
-## 📘 Part 5 — Extended CNN Experiments & Additional Improvements
-
-This final section expands upon the CNN work by exploring additional architectures, training strategies, and analysis.
-
-### ✔ Additional experiments include:
-- Testing alternative CNN structures  
-- Varying optimizers (Adam, SGD Momentum, RMSProp)  
-- Experimenting with different learning rates  
-- Using higher dropout or L2 regularization  
-- Applying expanded augmentation pipelines  
-- Comparing multiple training configurations  
-
-### 📈 Outputs:
-- Performance comparison tables  
-- Training & validation curves for new configurations  
-- Confusion matrices across extended experiments  
-- Analysis of which improvements were most impactful  
-
----
-```
 ## 📂 Project Structure
 
+```
 project/
-├── part_1.ipynb # Part 1 & Part 2
-├── part_2.ipynb # Part 3 & Part 4
-├── part_3.ipynb # Part 5 (Extended CNN Experiments)
-└── README.md # Project Documentation
+├── src/
+│   ├── server.cpp
+│   ├── client.cpp
+│   ├── logger.cpp
+│   ├── utility.cpp
+│   └── ...
+├── include/
+│   ├── logger.hpp
+│   ├── commands.hpp
+│   └── ...
+├── Makefile
+└── README.md
+
 
 ```
----
-
-## 🧰 Tools & Frameworks
-
-- **Python 3.x**  
-- **PyTorch or TensorFlow/Keras**  
-- **NumPy**  
-- **Pandas**  
-- **Matplotlib**  
-- **Seaborn**  
-- **scikit-learn**
 
 ---
 
-## 🎯 Key Learning Outcomes
+## 🔧 Technologies Used
 
-- Understanding neural network architecture and training  
-- Applying systematic hyperparameter tuning  
-- Implementing AlexNet-style CNNs from scratch  
-- Working with large-scale image datasets  
-- Using data augmentation to improve generalization  
-- Comparing models through structured experiments  
+- **C / C++**
+- **TCP/IP socket programming**
+- **select() for non-blocking I/O**
+- **UNIX/Linux environment**
+- **Custom logging and utility modules**
+
+---
+
+
